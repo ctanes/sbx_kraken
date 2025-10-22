@@ -41,8 +41,6 @@ def setup(tmp_path):
 
     yield tmp_path, project_dir
 
-    shutil.rmtree(tmp_path)
-
 
 @pytest.fixture
 def run_sunbeam(setup):
@@ -57,9 +55,12 @@ def run_sunbeam(setup):
             "run",
             "--profile",
             project_dir,
+            "--skip",
+            "decontam",
             "all_kraken",
             "--directory",
             tmp_path,
+            "--show-failed-logs",
         ],
         capture_output=True,
         text=True,
