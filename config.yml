@@ -1,2 +1,3 @@
 sbx_kraken:
   kraken_db_fp: ''
+  read_length_bp: 150

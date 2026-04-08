@@ -13,6 +13,14 @@ localrules:
 rule all_kraken:
     input:
         CLASSIFY_FP / "kraken" / "all_samples.tsv",
+        expand(
+            CLASSIFY_FP / "bracken" / "{sample}-species.tsv",
+            sample=Samples.keys(),
+        ),
+        expand(
+            CLASSIFY_FP / "bracken" / "{sample}-species-k2raw.tsv",
+            sample=Samples.keys(),
+        ),
 
 
 rule kraken2_classify_report:
@@ -64,3 +72,32 @@ rule summarize_kraken2_reports:
         LOG_FP / "summarize_kraken2_reports.log",
     script:
         "scripts/summarize_kraken2_reports.py"
+
+rule bracken_species:
+    input:
+        CLASSIFY_FP / "kraken" / "{sample}-taxa.tsv",
+    output: 
+        breport=CLASSIFY_FP / "bracken" / "{sample}-species.tsv",    
+        kreport=CLASSIFY_FP / "bracken" / "{sample}-species-k2raw.tsv",    
+    log:
+        LOG_FP / "bracken_species_{sample}.log",
+    params:
+        db=Cfg["sbx_kraken"]["kraken_db_fp"],
+        readlen=Cfg["sbx_kraken"]["read_length_bp"],
+    conda:
+        "envs/sbx_kraken_env.yml"
+    container:
+        f"docker://sunbeamlabs/sbx_kraken:{SBX_KRAKEN_VERSION}"
+    threads: 1
+    shell:
+        """
+        bracken \
+        -i {input} \
+        -d {params.db} \
+        -o {output.breport} \
+        -w {output.kreport} \
+        -r {params.readlen} \
+        -l S > {log} 2>&1
+        """
+    
+
